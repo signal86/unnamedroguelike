@@ -2,5 +2,8 @@
     "name": "socket-roguelike",
     "version": "0.0.1",
     "description": "backend for unnamed rogulike based on satirical space america",
-    "dependencies": {}
+    "dependencies": {
+        "document": "^0.4.7",
+        "express": "^4.19.2"
+    }
 }
