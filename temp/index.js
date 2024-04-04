@@ -4,12 +4,12 @@ const ctx = canvas.getContext("2d")
 canvas.width = 1200
 canvas.height = 800
 
-const FPS = 30
+const FPS = 40
 
 const currentKeysPressed = {};
 
 const background = new Image();
-background.src = "./Assets/testbackground.png";
+background.src = "./Assets/space.jpg";
 
 const player = {
     pos: {
@@ -28,7 +28,7 @@ const player = {
 
 function gameLoop(){
 
-    gravity(player, 1)
+    gravity(player, 2)
     playerMovement()
 
     player.pos.x += player.vel.x
@@ -41,7 +41,7 @@ function gameLoop(){
     ctx.imageSmoothingEnabled = false
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height)
 
-    ctx.fillStyle = "black"
+    ctx.fillStyle = "blue"
     ctx.fillRect(player.pos.x, player.pos.y, player.hitbox.x, -1*player.hitbox.y)
 }
 
@@ -60,18 +60,23 @@ function gravity(entity, force){
 }
 
 function playerMovement(){
-    if (currentKeysPressed["a"] == true) player.vel.x -= 4.5
-    if (currentKeysPressed["d"] == true) player.vel.x += 4.5
+    if (currentKeysPressed["a"] == true) player.vel.x -= 5
+    if (currentKeysPressed["d"] == true) player.vel.x += 5
 }
 
 gameInterval = setInterval(gameLoop, 1000 / FPS)
 
 function onKeypress(event) {
-  currentKeysPressed[event.key] = true;
+    if (event.key == "a" || event.key == "d") currentKeysPressed[event.key] = true;
+    if (event.key == "w" && isOnGround(player.pos)){
+        player.pos.y -= 1
+        player.vel.y -= 23
+        console.log("jump")
+    }
 }
 
 function onKeyUp(event) {
-  currentKeysPressed[event.key] = false;
+    if (event.key == "a" || event.key == "d") currentKeysPressed[event.key] = false;
 }
 
 window.addEventListener('keydown', onKeypress);
