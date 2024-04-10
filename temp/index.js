@@ -31,7 +31,7 @@ class WallCollision {
 
     draw() {
 
-        ctx.fillStyle("red");
+        ctx.fillStyle = "red";
         ctx.fillRect(this.x, this.y, this.w, this.h);
 
     }
@@ -61,32 +61,6 @@ const jumpForce = 900;
 
 let lastFrame = performance.now();
 
-function gameLoop() {
-    const dt = (performance.now() - lastFrame) / 1000;
-    lastFrame = performance.now();
-
-    
-    player.pos.x += player.vel.x * dt;
-    player.pos.y += player.vel.y * dt;
-    
-    applyGravity(player, gravity, dt);
-    playerMovement();
-
-    player.vel.x /= 1 + dampingFactor * dt;
-
-    // console.log(currentKeysPressed)
-
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = "blue";
-    ctx.fillRect(player.pos.x, player.pos.y, player.hitbox.x, -1*player.hitbox.y);
-
-
-    // for (const box in boxes) box.draw();
-    requestAnimationFrame(gameLoop);
-}
-
 
 const isOnGround = playerY => playerY >= canvas.height;
 
@@ -104,9 +78,19 @@ function playerMovement() {
     if (player.wallColliding) console.log("uhoh!");
     if (currentKeysPressed["a"] == true) player.vel.x -= moveSpeed;
     if (currentKeysPressed["d"] == true) player.vel.x += moveSpeed;
+    let v = false;
     for (const box of boxes) {
-        
-    }
+        // console.log("box.x = " + box.x + "\nplayer = " + player.hitbox.x + player.vel.x);
+        if (
+            box.x <= player.hitbox.x + player.pos.x &&
+            box.x + box.w >= player.pos.x &&
+            box.y <= (player.hitbox.y * -1) + player.pos.y &&
+            box.y + box.h >= player.pos.y
+        ) {
+            v = true;
+            player.wallColliding = true;
+        }
+    } if (!v) player.wallColliding = false;
 }
 
 
@@ -128,5 +112,34 @@ window.addEventListener('keydown', onKeyPress);
 window.addEventListener('keyup', onKeyUp);
 
 
-WallCollision.addWall(200, 200, 15, 15);
+function gameLoop() {
+    const dt = (performance.now() - lastFrame) / 1000;
+    lastFrame = performance.now();
+    
+    
+    player.pos.x += player.vel.x * dt;
+    player.pos.y += player.vel.y * dt;
+    
+    applyGravity(player, gravity, dt);
+    playerMovement();
+    
+    player.vel.x /= 1 + dampingFactor * dt;
+    
+    // console.log(currentKeysPressed)
+    
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = "blue";
+    ctx.fillRect(player.pos.x, player.pos.y, player.hitbox.x, -1*player.hitbox.y);
+    
+    
+    for (const box of boxes) box.draw();
+    requestAnimationFrame(gameLoop);
+}
+
+
+WallCollision.addWall(1000, 700, 15, 100);
+WallCollision.addWall(900, 700, 15, 100);
+WallCollision.addWall(800, 600, 15, 160);
 gameLoop();
