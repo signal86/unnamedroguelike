@@ -6,6 +6,7 @@ canvas.height = 800;
 
 const boxes = [];
 
+
 const currentKeysPressed = {};
 
 const background = new Image();
@@ -81,8 +82,8 @@ function gameLoop() {
     ctx.fillStyle = "blue";
     ctx.fillRect(player.pos.x, player.pos.y, player.hitbox.x, -1*player.hitbox.y);
 
-    for (box in boxes) box.draw();
 
+    // for (const box in boxes) box.draw();
     requestAnimationFrame(gameLoop);
 }
 
@@ -104,7 +105,7 @@ function playerMovement() {
     if (currentKeysPressed["a"] == true) player.vel.x -= moveSpeed;
     if (currentKeysPressed["d"] == true) player.vel.x += moveSpeed;
     for (const box of boxes) {
-
+        
     }
 }
 
@@ -125,6 +126,7 @@ function onKeyUp(event) {
 
 window.addEventListener('keydown', onKeyPress);
 window.addEventListener('keyup', onKeyUp);
+
 
 WallCollision.addWall(200, 200, 15, 15);
 gameLoop();
