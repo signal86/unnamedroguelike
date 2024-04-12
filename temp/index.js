@@ -29,11 +29,12 @@ class WallCollision {
 
     }
 
-    static collide(box, entity) {
-        const box_center = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
+    collide(entity) {
+        console.log("collide method: " + entity.isGrounded);
+        const box_center = { x: this.x + this.w / 2, y: this.y + this.h / 2 };
         const entity_center = { x: entity.pos.x + entity.hitbox.x / 2, y: entity.pos.y + entity.hitbox.y / 2 };
 
-        const min_dist = { x: entity.hitbox.x / 2 + box.w / 2, y: entity.hitbox.y / 2 + box.h / 2 };
+        const min_dist = { x: entity.hitbox.x / 2 + this.w / 2, y: entity.hitbox.y / 2 + this.h / 2 };
         const delta = { x: box_center.x - entity_center.x, y: box_center.y - entity_center.y };
     
         if (Math.abs(delta.x) <= min_dist.x && Math.abs(delta.y) <= min_dist.y) {
@@ -44,12 +45,14 @@ class WallCollision {
 
                 entity.pos.x += overlap.x * bounce_dir;
                 entity.vel.x = 0;
+                console.log("x bounce");
             } else {
                 const bounce_dir = delta.y > 0 ? 1 : -1;
 
                 entity.pos.y += overlap.y * bounce_dir;
                 entity.vel.y = 0;
 
+                console.log("y bounce " + bounce_dir);
                 if (bounce_dir == 1)
                     entity.isGrounded = true;
             }
@@ -134,8 +137,9 @@ function gameLoop() {
     player.isGrounded = false;
     
     for (const box of boxes) {
-        WallCollision.collide(box, player);
+        box.collide(player);
         box.drawHitbox();
+        console.log(player.isGrounded);
     }
 
     if (player.pos.y + player.hitbox.y >= canvas.height) {
