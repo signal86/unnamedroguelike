@@ -29,11 +29,34 @@ class WallCollision {
 
     }
 
-    collide(box, player) {
-        
+    static collide(box, entity) {
+        const box_center = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
+        const entity_center = { x: entity.pos.x + entity.hitbox.x / 2, y: entity.pos.y + entity.hitbox.y / 2 };
+
+        const min_dist = { x: entity.hitbox.x / 2 + box.w / 2, y: entity.hitbox.y / 2 + box.h / 2 };
+        const delta = { x: box_center.x - entity_center.x, y: box_center.y - entity_center.y };
+    
+        if (Math.abs(delta.x) <= min_dist.x && Math.abs(delta.y) <= min_dist.y) {
+            const overlap = { x: Math.abs(delta.x) - min_dist.x, y: Math.abs(delta.y) - min_dist.y };
+
+            if (overlap.x > overlap.y) {
+                const bounce_dir = delta.x > 0 ? 1 : -1;
+
+                entity.pos.x += overlap.x * bounce_dir;
+                entity.vel.x = 0;
+            } else {
+                const bounce_dir = delta.y > 0 ? 1 : -1;
+
+                entity.pos.y += overlap.y * bounce_dir;
+                entity.vel.y = 0;
+
+                if (bounce_dir == 1)
+                    entity.isGrounded = true;
+            }
+        }
     }
 
-    draw() {
+    drawHitbox() {
 
         ctx.fillStyle = "red";
         ctx.fillRect(this.x, this.y, this.w, this.h);
@@ -55,7 +78,8 @@ const player = {
         x: 40,
         y: 50
     },
-    wallColliding: false
+    wallColliding: false,
+    isGrounded: false
 }
 
 const dampingFactor = 17.5;
@@ -65,39 +89,7 @@ const jumpForce = 900;
 
 let lastFrame = performance.now();
 
-
 const isOnGround = playerY => playerY >= canvas.height;
-
-
-function applyGravity(entity, force, dt) {
-    if (!isOnGround(entity.pos.y + entity.hitbox.y)){
-        entity.vel.y += force * dt;
-    } else {
-        entity.vel.y = 0;
-        entity.pos.y = canvas.height - entity.hitbox.y;
-    }
-}
-
-function playerMovement() {
-    if (player.wallColliding)
-        console.log("uhoh!");
-
-    if (keyMap.a) player.vel.x -= moveSpeed;
-    if (keyMap.d) player.vel.x += moveSpeed;
-    let v = false;
-    for (const box of boxes) {
-        // console.log("box.x = " + box.x + "\nplayer = " + player.hitbox.x + player.vel.x);
-        if (
-            box.x <= player.hitbox.x + player.pos.x &&
-            box.x + box.w >= player.pos.x &&
-            box.y <= player.hitbox.y + player.pos.y &&
-            box.y + box.h >= player.pos.y
-        ) {
-            v = true;
-            player.wallColliding = true;
-        }
-    } if (!v) player.wallColliding = false;
-}
 
 window.addEventListener('keydown', event => {
     keyMap[event.key.toLowerCase()] = true;
@@ -117,6 +109,7 @@ window.addEventListener('keydown', event => {
 
 window.addEventListener('keyup', event => { keyMap[event.key] = false; });
 
+ctx.imageSmoothingEnabled = false;
 
 function gameLoop() {
 
@@ -128,31 +121,42 @@ function gameLoop() {
     
     ctx.translate(-1 * (player.vel.x * dt), 0);
     
-    ctx.imageSmoothingEnabled = false;
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+    
+    if (keyMap.a) player.vel.x -= moveSpeed;
+    if (keyMap.d) player.vel.x += moveSpeed;
     
     player.pos.x += player.vel.x * dt;
     player.pos.y += player.vel.y * dt;
     
-    applyGravity(player, gravity, dt);
-    playerMovement();
-    
     player.vel.x /= 1 + dampingFactor * dt;
+
+    player.isGrounded = false;
     
-    // console.log(currentKeysPressed)
-    
+    for (const box of boxes) {
+        WallCollision.collide(box, player);
+        box.drawHitbox();
+    }
+
+    if (player.pos.y + player.hitbox.y >= canvas.height) {
+        player.isGrounded = true;
+        player.pos.y = canvas.height - player.hitbox.y;
+        player.vel.y = 0;
+    }
+
+    if (!player.isGrounded)
+        player.vel.y += gravity * dt;
     
     ctx.fillStyle = "blue";
     ctx.fillRect(player.pos.x, player.pos.y, player.hitbox.x, player.hitbox.y);
     
-    for (const box of boxes) box.draw();
     requestAnimationFrame(gameLoop);
 
 }
 
 
-// WallCollision.addWall(1500, 700, 15, 100);
 WallCollision.addWall(1000, 700, 15, 100);
 WallCollision.addWall(900, 700, 15, 100);
 WallCollision.addWall(800, 600, 15, 160);
+WallCollision.addWall(500, 675, 150, 50);
 gameLoop();
