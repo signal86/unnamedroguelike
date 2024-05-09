@@ -50,8 +50,10 @@ class WallCollision {
                 entity.pos.y += overlap.y * bounce_dir;
                 entity.vel.y = 0;
 
-                if (bounce_dir == 1)
+                if (bounce_dir == 1) {
                     entity.isGrounded = true;
+                    entity.jumpInputTime = 1.0;
+                }
             }
         }
     }
@@ -79,41 +81,32 @@ const player = {
         y: 50
     },
     wallColliding: false,
-    isGrounded: false
+    isGrounded: false,
+    jumpInputTime: 1.0
+    
 }
 
 const dampingFactor = 17.5;
 const moveSpeed = 115;
 const gravity = 2500;
-const jumpForce = 900;
+const jumpForce = 450;
+const jumpBoost = 80;
 
 let lastFrame = performance.now();
 
-const isOnGround = playerY => playerY >= canvas.height;
-
 window.addEventListener('keydown', event => {
     keyMap[event.key.toLowerCase()] = true;
-    
-    // if ((event.key.toLowerCase() == "arrowup" || event.key.toLowerCase() == "w" || event.key.toLowerCase() == " ") && isOnGround(player.pos.y + player.hitbox.y)){
-    if (isOnGround(player.pos.y + player.hitbox.y)) {
-        switch (event.key.toLowerCase()) {
-            case "arrowup":
-            case "w":
-            case " ":
-                player.pos.y -= 1;
-                player.vel.y -= jumpForce;
-                console.log("jump");
-        }
-    }
 });
 
-window.addEventListener('keyup', event => { keyMap[event.key] = false; });
+window.addEventListener('keyup', event => { 
+    console.log(keyMap);
+    keyMap[event.key.toLowerCase()] = false;
+    if (event.key = "w") player.jumpInputTime = 0;
+});
 
 ctx.imageSmoothingEnabled = false;
 
 function gameLoop() {
-
-    // ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const dt = (performance.now() - lastFrame) / 1000;
     lastFrame = performance.now();
@@ -123,8 +116,21 @@ function gameLoop() {
     
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
     
-    if (keyMap.a) player.vel.x -= moveSpeed;
-    if (keyMap.d) player.vel.x += moveSpeed;
+    if (keyMap.a || keyMap.arrowleft) player.vel.x -= moveSpeed;
+    if (keyMap.d || keyMap.arrowright) player.vel.x += moveSpeed;
+    if (keyMap.w || keyMap.arrowup || keyMap[" "]) {
+        if (player.jumpInputTime == 1.0) {
+            player.pos.y -= 1;
+            player.vel.y -= jumpForce;
+            player.jumpInputTime -= 0.15;
+            console.log("jump");
+            
+        } else if (player.jumpInputTime > 0) {
+            player.vel.y -= jumpBoost;
+            player.jumpInputTime -= 0.15;
+            console.log("jump");
+        }
+    }
     
     player.pos.x += player.vel.x * dt;
     player.pos.y += player.vel.y * dt;
@@ -140,6 +146,7 @@ function gameLoop() {
 
     if (player.pos.y + player.hitbox.y >= canvas.height) {
         player.isGrounded = true;
+        player.jumpInputTime = 1.0;
         player.pos.y = canvas.height - player.hitbox.y;
         player.vel.y = 0;
     }
