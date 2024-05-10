@@ -10,7 +10,8 @@ const boxes = [];
 const keyMap = {};
 
 const background = new Image();
-background.src = "./Assets/testbackground.png";
+background.src = "./Assets/pixil-frame-0.png";
+
 
 class WallCollision {
 
@@ -111,11 +112,14 @@ function gameLoop() {
     const dt = (performance.now() - lastFrame) / 1000;
     lastFrame = performance.now();
     
-    
     ctx.translate(-1 * (player.vel.x * dt), 0);
     
-    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+    const ptrn = ctx.createPattern(background, 'repeat'); // Create a pattern with this image, and set it to "repeat".
+    ctx.fillStyle = ptrn;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
+    player.isGrounded = false;
+
     if (keyMap.a || keyMap.arrowleft) player.vel.x -= moveSpeed;
     if (keyMap.d || keyMap.arrowright) player.vel.x += moveSpeed;
     if (keyMap.w || keyMap.arrowup || keyMap[" "]) {
@@ -136,8 +140,6 @@ function gameLoop() {
     player.pos.y += player.vel.y * dt;
     
     player.vel.x /= 1 + dampingFactor * dt;
-
-    player.isGrounded = false;
     
     for (const box of boxes) {
         WallCollision.collide(box, player);
