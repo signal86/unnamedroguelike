@@ -1,17 +1,22 @@
 const canvas = document.querySelector("#game-canvas");
 const ctx = canvas.getContext("2d");
 
-canvas.width = 1200;
-canvas.height = 800;
+canvas.width = 640;
+canvas.height = 360;
 
 const boxes = [];
 
+const character = new Image();
+character.src = "./Assets/knight.png"
 
 const keyMap = {};
 
 const background = new Image();
 background.src = "./Assets/pixil-frame-0.png";
 
+let state = "idle"
+let lastState = "idle"
+let animationFrame = 0
 
 class WallCollision {
 
@@ -70,16 +75,16 @@ class WallCollision {
 
 const player = {
     pos: {
-        x: 600,
-        y: 400
+        x: 300,
+        y: 200
     },
     vel: {
         x: 0,
         y: 0
     },
     hitbox: {
-        x: 40,
-        y: 50
+        x: 32,
+        y: 32
     },
     wallColliding: false,
     isGrounded: false,
@@ -156,9 +161,14 @@ function gameLoop() {
     if (!player.isGrounded)
         player.vel.y += gravity * dt;
     
-    ctx.fillStyle = "blue";
-    ctx.fillRect(player.pos.x, player.pos.y, player.hitbox.x, player.hitbox.y);
+    if (player.vel.x == 0 && player.vel.y == 0) {
+        state = "idle"
+    }
     
+    if (state == "idle") {
+        stateIdle()
+    }
+
     requestAnimationFrame(gameLoop);
 
 }
@@ -169,3 +179,23 @@ WallCollision.addWall(900, 700, 15, 100);
 WallCollision.addWall(800, 600, 15, 160);
 WallCollision.addWall(500, 675, 150, 50);
 gameLoop();
+
+function stateJumping () {
+
+}
+
+function stateFalling () {
+
+}
+
+function stateRunning () {
+
+}
+
+function stateIdle () {
+   ctx.drawImage(character,(0+(32*animationFrame)),0,32,32,player.pos.x,player.pos.y,32,32);
+   animationFrame += 1;
+   if (animationFrame >= 8) {
+    animationFrame = 0
+   }
+}
